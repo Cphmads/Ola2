@@ -1,0 +1,76 @@
+# OLA 2 opgave 1
+################
+# Opgave 1.1
+################
+# Skriv en kode, der viser hvordan du finder en tabel som kan give en liste 
+# over byer med indbyggertal vha DST-pakken dkstat.
+
+library(dkstat) 
+library(ggplot2)
+
+# Get data
+ByInd <- dst_meta(table = "BY3", lang = "da")
+print(ByInd)
+
+ByInd_data <- dst_get_data(table = "BY3",
+                           BYER="*",
+                           FOLKARTAET="Folketal",
+                           Tid="*"
+)
+
+# Clip data to 2024
+ByInd_data <- dst_get_data(table = "BY3",
+                           BYER="*",
+                           FOLKARTAET="Folketal",
+                           Tid="2024"
+)
+# Check what data is 
+str(ByInd_data)
+tibble(ByInd_data)
+
+# Remove all data that has 0
+ByInd_data <- ByInd_data[ByInd_data$value != 0,]
+
+#################
+# opgave 1.2
+#################
+# Lav en kategorivariabel i R ud fra følgende kriterier: 
+# bycat = (c("landsby"=250,"lille by"=1000, "almindelig by"=2500, 
+# "større by"=10000, "storby"=50000)) og anvend den på listen over byer.
+
+# clean data
+ByInd_data$BYER <- gsub("[0-9]+", "", ByInd_data$BYER)
+ByInd_data$BYER <- gsub("- ", "", ByInd_data$BYER)
+ByInd_data$BYER <- gsub("\\(.*?\\)", "", ByInd_data$BYER)
+ByInd_data$BYER <- trimws(ByInd_data$BYER)
+# man bruger ovenstående funktioner til at rydde op i dataen i kollene 1. 
+# "[0-9]+|-", "", man tager alle tal og bindesteger i kolonne 1 og fjerner dem
+# \\(.*?\\) bliver brugt til at fjerne alle paranteser og alt der står imellem.
+# man bruger trimws til at fjerne mellemrummene i venstre side af BYER
+
+# sumerise data so you only have 1 of the same name 
+ByInd_data <- ByInd_data %>% 
+  group_by(BYER) %>% 
+  summarise(across(where(is.numeric), sum, na.rm = TRUE))
+
+# alternatively you can use the "aggregate" function
+#folkdataclean <- aggregate(value ~ BYER, data = folkdata, FUN = sum)
+
+# change the dataset so you dont have Æ,Ø,Å but AA, AE,OE,AA
+ByInd_data$BYER=gsub("æ","ae",ByInd_data$BYER)
+ByInd_data$BYER=gsub("ø","oe",ByInd_data$BYER)
+ByInd_data$BYER=gsub("å","aa",ByInd_data$BYER)
+
+# change the text in the data to small letters 
+# so it matches with the new data sheet
+ByInd_data$BYER <- tolower(ByInd_data$BYER)
+
+
+2# categorize cities after how many live there
+ByInd_data$kategorisering <- ifelse(ByInd_data$value > 50000, "storby",
+                                    ifelse(ByInd_data$value >= 10000, "større by",
+                                           ifelse(ByInd_data$value >= 2500, "almindelig by",
+                                                  ifelse(ByInd_data$value >= 1000, "lille by",
+                                                         ifelse(ByInd_data$value >= 250, "landsby", "landet")))))
+
+
