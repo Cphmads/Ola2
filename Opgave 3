@@ -22,12 +22,12 @@ library(lubridate)
 
 Privatforbrug.periode$dummy <- ifelse(Privatforbrug.periode$Realvækst >= 0, print(1), print(0))
 table(Privatforbrug.periode$dummy)
-#0  21
+#0  22
 #1  77  
 
 
 #Den kvartalsvise årlige vækst i husholdningernes forbrugsudgifter stiger 77 gange (kvartaler)
-#og falder 21 gange (kvartaler) i perioden 1. kvartal 2000 til 2. kvartal 2024. 
+#og falder 22 gange (kvartaler) i perioden 1. kvartal 2000 til 3. kvartal 2024. 
 
 #98 obs 
 #For 0 (faldende udgifter): 
@@ -40,23 +40,23 @@ table(Privatforbrug.periode$dummy)
 #Opgave 3.2 – Logistisk regression og forudsigelser
 #Lav en logistik regression med dummy variable fra opgave 1.1 og de fire indikatorer i DI’s
 #forbrugertillidsindikator. Hvilken retning forudsiger jeres model, at den årlige vækst i
-#husholdningernes forbrugsudgift, vil gå i 3. kvartal 2024? (Hint: svaret er enten op eller ned)
+#husholdningernes forbrugsudgift, vil gå i 4. kvartal 2024? (Hint: svaret er enten op eller ned)
 
 ## Multipel logistisk regression, Retning som y (forudsig), FTI som x(uafhængig variabel)
 retningglm <- glm(formula = Privatforbrug.periode$dummy ~ 
-                    FORV1.kvartal$`Familiens økonomiske situation i dag, sammenlignet med for et år siden`[92:189]+
-                    FORV1.kvartal$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`[92:189]+
-                    FORV1.kvartal$`Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`[92:189]+
-                    FORV1.kvartal$`Anskaffelse af større forbrugsgoder, inden for de næste 12 mdr.`[92:189],  
+                    FORV1.kvartal$`Familiens økonomiske situation i dag, sammenlignet med for et år siden`[92:190]+
+                    FORV1.kvartal$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`[92:190]+
+                    FORV1.kvartal$`Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`[92:190]+
+                    FORV1.kvartal$`Anskaffelse af større forbrugsgoder, inden for de næste 12 mdr.`[92:190],  
                   family = "binomial")
 
 summary(retningglm)
 
 retningglm$coefficients
-# 3 ud af 4 er insignifkante - disse fjernes og vi har derfor kun 1. vi skal have alle med og tager derfor bare DI for Q2
+# 3 ud af 4 er insignifkante - disse fjernes og vi har derfor kun 1. vi skal have alle med og tager derfor bare DI for Q3
 
 retningglm2 <- glm(formula = Privatforbrug.periode$dummy ~ 
-                     FORV1.kvartal$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`[92:189],
+                     FORV1.kvartal$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`[92:190],
                    family = "binomial")
 
 summary(retningglm2)
@@ -79,12 +79,12 @@ summary(retningglm3)
 #x værdi = -8.1750
 
 # Given values
-B0 = 1.92532
-B1 = 0.10937
+B0 = 2.08508
+B1 = 0.14242
 X1 = -8.1750
 
 # Using the formula for p-hat(X)
-numerator = math.exp(B0 + B1 * X1)
+numerator = exp(B0 + B1 * X1)
 denominator = 1 + numerator
 p_hat = numerator / denominator
 
@@ -157,15 +157,6 @@ print(conf_matrix)
 contrasts(actual)
 # Opret konfusionsmatrixen
 
-
-
-
-
-
-
-
-
-
 # Installér nødvendige pakker
 install.packages("kableExtra")
 library(kableExtra)
@@ -187,19 +178,13 @@ knitr::kable(con_matrx_total, format = "html", caption = "Confusion Matrix") %>%
   column_spec(1, bold = TRUE) %>%
   collapse_rows(columns = 1, valign = "middle")
 
-
-
-
-
-
-
 # Installer og indlæs nødvendige pakker
 install.packages("pROC")
 library(pROC)
 
 # Definér de observerede og forudsagte værdier fra din konfusionsmatrix
-observed <- c(rep(0, 17), rep(1, 81)) # 0 for negative (0), 1 for positive (1)
-predicted <- c(rep(0, 10), rep(1, 7), rep(0, 11), rep(1, 70)) # Forudsigelser
+observed <- c(rep(0, 22), rep(1, 77)) # 0 for negative (0), 1 for positive (1)
+predicted <- c(rep(0, 13), rep(1, 9), rep(0, 9), rep(1, 68)) # Forudsigelser
 
 # Lav en ROC-kurve
 roc_curve <- roc(observed, predicted)
@@ -209,17 +194,10 @@ plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 1)
 
 # Vis AUC-værdien
 auc(roc_curve)
-#Area under the curve: 0.7262
-
-
+#Area under the curve: 0.737
 
 # Vis AUC-værdien
 auc(roc_curve3)
-
-
-
-
-
 
 # ændre threshold til 0,5
 
@@ -235,9 +213,8 @@ con_matrx3 <- table(Privatforbrug.periode$dummy, Privatforbrug.periode$Dummy.for
 
 print(con_matrx3)
 
-
-observed3 <- c(rep(0, 17), rep(1, 81)) # 0 for negative (0), 1 for positive (1)
-predicted3 <- c(rep(0, 1), rep(1, 0), rep(0, 20), rep(1, 77)) # Forudsigelser
+observed3 <- c(rep(0, 22), rep(1, 77)) # 0 for negative (0), 1 for positive (1)
+predicted3 <- c(rep(0, 3), rep(1, 19), rep(0, 0), rep(1, 77)) # Forudsigelser
 
 # Lav en ROC-kurve
 roc_curve3 <- roc(observed3, predicted3)
